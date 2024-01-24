@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h" />
+
+  <Extern href="vsshlids.h" />
+
+  <Commands package="guidCommand1Package">
+    <Groups>
+      <Group guid="guidCommand1PackageCmdSet" id="MyMenuGroup" priority="0x0600">
+        <Parent guid="guidCommand1PackageCmdSet" id="MyTopMenu"/>
+      </Group>
+    </Groups>
+
+    <Menus>
+      <Menu guid="guidCommand1PackageCmdSet" id="MyTopMenu" type="Menu">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_MM_TOOLSADDINS"/>
+        <Strings>
+          <ButtonText>Sir Sql Valet</ButtonText>
+        </Strings>
+      </Menu>
+    </Menus>
+    <Buttons>
+      <Button guid="guidCommand1PackageCmdSet" id="SirSqlValetFKCmd" priority="0x0100" type="Button">
+        <Parent guid="guidCommand1PackageCmdSet" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>the Valet himself</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCommand1PackageCmdSet" id="SwitchCommentCmd" priority="0x0100" type="Button">
+        <Parent guid="guidCommand1PackageCmdSet" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>switch comment</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCommand1PackageCmdSet" id="RotateTransDevContextCmd" priority="0x0100" type="Button">
+        <Parent guid="guidCommand1PackageCmdSet" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>rotate transaction/dev context</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCommand1PackageCmdSet" id="StringyfyUnstringyfyCmd" priority="0x0100" type="Button">
+        <Parent guid="guidCommand1PackageCmdSet" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>[un] stringyfy</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCommand1PackageCmdSet" id="SqwishToSingleLineCmd" priority="0x0100" type="Button">
+        <Parent guid="guidCommand1PackageCmdSet" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>sqwish to single line</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+
+  </Commands>
+
+  <Symbols>
+    <GuidSymbol name="guidTextEditor"             value="{8B382828-6202-11d1-8870-0000F87579D2}" />
+    <GuidSymbol name="guidCommand1Package"        value="{D4E44A11-68B9-47A9-99AB-7FC3235CB3E7}" />
+    <GuidSymbol name="guidCommand1PackageCmdSet"  value="{076267C2-B77C-4A70-80A1-A306F44F0246}">
+      <IDSymbol name="MyTopMenu"                  value="0x1001" />
+      <IDSymbol name="MyMenuGroup"                value="0x1020" />
+      <IDSymbol name="SirSqlValetFKCmd"           value="1001"   />
+      <IDSymbol name="SwitchCommentCmd"           value="1002"   />
+      <IDSymbol name="RotateTransDevContextCmd"   value="1003"   />
+      <IDSymbol name="StringyfyUnstringyfyCmd"    value="1004"   />
+      <IDSymbol name="SqwishToSingleLineCmd"      value="1005"   />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

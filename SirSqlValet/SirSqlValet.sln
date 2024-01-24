@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34408.163
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SirSqlValet", "SirSqlValet\SirSqlValet.csproj", "{06C31C4A-BBB5-4DCD-8650-6E00B993C46A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SirSqlValetCore", "SirSqlValetCore\SirSqlValetCore.csproj", "{77516DFD-7074-4899-8E12-9326E41B6901}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SirSqlValetCommands", "SirSqlValetCommands\SirSqlValetCommands.csproj", "{A4214ADB-0C2E-4263-A51C-14CA998A6E43}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{06C31C4A-BBB5-4DCD-8650-6E00B993C46A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06C31C4A-BBB5-4DCD-8650-6E00B993C46A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06C31C4A-BBB5-4DCD-8650-6E00B993C46A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06C31C4A-BBB5-4DCD-8650-6E00B993C46A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77516DFD-7074-4899-8E12-9326E41B6901}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77516DFD-7074-4899-8E12-9326E41B6901}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77516DFD-7074-4899-8E12-9326E41B6901}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77516DFD-7074-4899-8E12-9326E41B6901}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4214ADB-0C2E-4263-A51C-14CA998A6E43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4214ADB-0C2E-4263-A51C-14CA998A6E43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4214ADB-0C2E-4263-A51C-14CA998A6E43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4214ADB-0C2E-4263-A51C-14CA998A6E43}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D2B152AD-4AF8-4F40-846C-959E8A335884}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+EndGlobal

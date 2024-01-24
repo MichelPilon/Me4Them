@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+    <Metadata>
+        <Identity Id="SirSqlValet.4789DF6A-DE49-4525-B62C-D1289C6F8A27" Version="1.0" Language="en-US" Publisher="Michel Pilon" />
+        <DisplayName>SirSqlValet</DisplayName>
+        <Description xml:space="preserve">Useful extensions for SSMS in SIR BD context</Description>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Id="ssms" Version="[15.0,16.0)">
+            <ProductArchitecture>x86</ProductArchitecture>
+        </InstallationTarget>
+    </Installation>
+    <Dependencies>
+        <Dependency d:Source="Manual" Version="[4.5,)" DisplayName="Microsoft .NET Framework" Id="Microsoft.Framework.NDP" />
+        <Dependency Id="Microsoft.VisualStudio.MPF.15.0" DisplayName="Visual Studio MPF 15.0" d:Source="Installed" Version="[15.0]" />
+    </Dependencies>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+    </Prerequisites>
+    <Assets>
+    </Assets>
+</PackageManifest>

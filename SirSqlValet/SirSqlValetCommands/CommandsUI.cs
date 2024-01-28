@@ -13,6 +13,7 @@ using SirSqlValetCore.Integration;
 
 using static SirSqlValetCommands.Data.SVCGlobal;
 using System.Windows;
+using System.Windows.Forms;
 
 
 namespace SirSqlValetCommands
@@ -49,6 +50,8 @@ namespace SirSqlValetCommands
         public CommandsUI(PackageProvider packageProvider)
         {
             this.packageProvider = packageProvider;
+            SVCGlobal.statusText = "";
+          //F.MessageBox.Show($"Coucou ! ;-)", $"", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         }
 
         public void Register()
@@ -58,20 +61,12 @@ namespace SirSqlValetCommands
 
             isRegistered = true;
 
-            foreach (var info in new int[] { 1001, 1002, 1003, 1004, 1005 }) 
-            {
-                EventHandler           eh = null;
+            var handlers = new (EventHandler eh, int id)[] { (Sir_Sql_Valet, 1001), (switch_comment, 1002), (exec_context, 1003), (quote_unquote, 1004), (single_line, 1005) };
 
-                if      (info == 1001) eh = this.ExecuteFromMenu1001; 
-                else if (info == 1002) eh = this.ExecuteFromMenu1002; 
-                else if (info == 1003) eh = this.ExecuteFromMenu1003; 
-                else if (info == 1004) eh = this.ExecuteFromMenu1004; 
-                else if (info == 1005) eh = this.ExecuteFromMenu1005; 
-
-                if (eh != null)
-                    packageProvider.CommandService.AddCommand(new MenuCommand(eh, new CommandID(MenuHelper.CommandSet, info)));
-            }
+            foreach (var handler in handlers)
+                packageProvider.CommandService.AddCommand(new MenuCommand(handler.eh, new CommandID(MenuHelper.CommandSet, handler.id)));
         }
+
         private IEnumerable<string> GetQueryText()
         {
             document = packageProvider.Dte2.ActiveDocument;
@@ -91,27 +86,27 @@ namespace SirSqlValetCommands
 
             return textDocumentLines;
         }
-        private void SetQueryText(string newText) => SetQueryText(newText.SplitTextOnLines());
-        private void SetQueryText(IEnumerable<string> newLines)
+        private void SetQueryText_MergeNewText(string newText) => SetQueryText_MergeNewLines(newText.SplitTextOnLines());
+        private void SetQueryText_MergeNewLines(IEnumerable<string> newLines)
         {
             int index_top_both = -1;
             for (int i = 0; index_top_both == -1 && i < Math.Min(textDocumentLines.Count(), newLines.Count()); i++)
                 if (textDocumentLines.ElementAt(i) != newLines.ElementAt(i))
                     index_top_both = i;
 
-            if (index_top_both == -1)
+            if (index_top_both.Equals(-1))
                 return;
 
-            int index_end;
-            for (index_end = 0; index_end <= 0 && index_end < Math.Min(textDocumentLines.Count(), newLines.Count()); index_end++)
-                if (textDocumentLines.ElementAt(textDocumentLines.Count() - 1 + index_end) != newLines.ElementAt(newLines.Count() - 1 + index_end))
-                    index_end*=-1;
+            int index_end = -1;
+            for (int i = 0; index_end == -1 && i < Math.Min(textDocumentLines.Count(), newLines.Count()); i++)
+                if (textDocumentLines.ElementAt(textDocumentLines.Count() - 1 - i) != newLines.ElementAt(newLines.Count() - 1 - i))
+                    index_end = i;
 
-            if (index_end <= 0)
+            if (index_end.Equals(-1))
                 return;
 
-            int index_end_original  =    textDocumentLines.Count() - 1 - index_end;
-            int index_end_new       = newLines.Count() - 1 - index_end;
+            int index_end_original  = textDocumentLines.Count() - 1 - index_end;
+            int index_end_new       =          newLines.Count() - 1 - index_end;
 
                    newLines         = newLines.Skip(index_top_both).Take(index_end_new - index_top_both + 1);
             string newText          = newLines.Join(Environment.NewLine, after: index_end_original < textDocumentLines.Count() - 1);
@@ -125,44 +120,95 @@ namespace SirSqlValetCommands
             textSelectionObj.CharRight(Count: BC(enumNBase.enbOne) - TC(enumNBase.enbOne), Extend: true);
         }
 
-        private void ExecuteFromMenu1001(object sender, EventArgs _e)
+        private void InitializeBefore_SpecificCommandExecution() => GetQueryText();
+
+        private void MergeNewScriptInCurrentScript(IEnumerable<string> newLines)
+        {
+            SetQueryText_MergeNewLines(newLines);
+
+            textDocumentLines   = newLines;
+            textDocumentString  = textDocumentLines.Join();
+        }
+
+        private void ShowMessage_ComingSoon(string texte)
+        {
+            F.MessageBox.Show($"{texte}\r\n\r\n...coming soon to an extension near you !", $"{texte}", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+        }
+        private void ShowMessage_Error(string texte, Exception exception)
+        {
+            texte = $"{texte} : ERREUR";
+
+            while ((exception = exception.InnerException) != null)
+                texte += Environment.NewLine + Environment.NewLine + exception.Message;
+
+            F.MessageBox.Show(texte, texte.Substring(0, texte.IndexOf(' ')), MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+        }
+
+        public static string GetCurrentMethodName([System.Runtime.CompilerServices.CallerMemberName] string memberName = "")
+        {
+            return memberName; // This will return "Main"
+        }
+
+        private void Sir_Sql_Valet(object sender, EventArgs _e)
         {
             try
             {
-                GetQueryText();
-                NewClipboard(textDocumentString, TL(enumNBase.enbZero));
-                FScript f = new FScript();
-                SetQueryText(f.MyShowDialog());
-                f.Dispose();
-                f = null;
+                InitializeBefore_SpecificCommandExecution();
+                MergeNewScriptInCurrentScript(new FScript(textDocumentString, TL(enumNBase.enbZero)).MyShowDialog());
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                MessageBox.Show(e.Message, "Switch Comment", MessageBoxButton.OK, MessageBoxImage.Error);
+                ShowMessage_Error(GetCurrentMethodName(), exception);
             }
         }
-        private void ExecuteFromMenu1002(object sender, EventArgs _e)
+        private void switch_comment(object sender, EventArgs eventArg)
         {
             try
             {
-                SetQueryText(Command1002_SwitchComment.Execute(GetQueryText(), TL(enumNBase.enbZero)));
+                InitializeBefore_SpecificCommandExecution();
+                MergeNewScriptInCurrentScript(Command1002_SwitchComment.Execute(textDocumentLines, TL(enumNBase.enbZero)));
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                MessageBox.Show(e.Message, "Switch Comment", MessageBoxButton.OK, MessageBoxImage.Error);
-            }   
+                ShowMessage_Error(GetCurrentMethodName(), exception);
+            }
         }
-        private void ExecuteFromMenu1003(object sender, EventArgs e)
+        private void exec_context(object sender, EventArgs eventArg)
         {
-            F.MessageBox.Show("rotate transaction/dev context");
+            try
+            {
+                InitializeBefore_SpecificCommandExecution();
+                ShowMessage_ComingSoon(GetCurrentMethodName());
+            }
+            catch (Exception exception)
+            {
+                ShowMessage_Error(GetCurrentMethodName(), exception);
+            }
         }
-        private void ExecuteFromMenu1004(object sender, EventArgs e)
+        private void quote_unquote(object sender, EventArgs eventArg)
         {
-            F.MessageBox.Show("[un] stringyfy");
+            try
+            {
+                InitializeBefore_SpecificCommandExecution();
+                ShowMessage_ComingSoon(GetCurrentMethodName());
+            }
+            catch (Exception exception)
+            {
+                ShowMessage_Error(GetCurrentMethodName(), exception);
+            }
         }
-        private void ExecuteFromMenu1005(object sender, EventArgs e)
+        private void single_line(object sender, EventArgs eventArg)
         {
-            F.MessageBox.Show("sqwish to single line");
+            try
+            {
+                InitializeBefore_SpecificCommandExecution();
+                ShowMessage_ComingSoon(GetCurrentMethodName());
+            }
+            catch (Exception exception)
+            {
+                ShowMessage_Error(GetCurrentMethodName(), exception);
+            }
         }
+
     }
 }

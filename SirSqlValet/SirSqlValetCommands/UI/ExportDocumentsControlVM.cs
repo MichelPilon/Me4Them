@@ -12,8 +12,6 @@
     using SirSqlValetCore.Ui.Text;
     using SirSqlValetCore.Utils;
 
-    using SirSqlValetCommands.Services;
-
     public class ExportDocumentsControlVM : ViewModelBase
     {
         public Command ChooseFolderCmd { get; private set; }

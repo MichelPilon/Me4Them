@@ -31,7 +31,7 @@ namespace SirSqlValetCommands.Data
       //public  const   string                  NextWindowURL       = @"/sidekick";
       //public  const   string                  Tailwind            = @"/tailwind";
 
-        public  static  Stack<StackElement>     theStack            = new Stack<StackElement>(); 
+        public  static  Stack<StackElement>     scriptStack         = new Stack<StackElement>(); 
         public  static  WorkData                wd                  = new WorkData();        
                 
         static SVCGlobal()
@@ -40,12 +40,12 @@ namespace SirSqlValetCommands.Data
                 BD_Schema.Populate("CCQSQL044170", "CCQ", @"C:\Temp");
         }
 
-        public static void NewClipboard(string rawText, int line)
+        public static void NewScriptStack(string rawText, int line)
         {
-            if (theStack.Any())
-                theStack.Clear();
+            if (scriptStack.Any())
+                scriptStack.Clear();
             
-            theStack.Push(new StackElement() { SelectedLine = line, RawText = rawText });
+            scriptStack.Push(new StackElement() { SelectedLine = line, RawText = rawText });
 
             UndoAll();
         }
@@ -61,38 +61,38 @@ namespace SirSqlValetCommands.Data
 
         public static void UndoOne()
         {
-            if (theStack.Count > 1)
+            if (scriptStack.Count > 1)
             {
-                theStack.Pop();
+                scriptStack.Pop();
                 DataInitialize();
             }
         }
 
         public static void UndoAll()
         {
-            while (theStack.Count > 1) theStack.Pop();
+            while (scriptStack.Count > 1) scriptStack.Pop();
             DataInitialize();
         }
 
         public static void PutOnStack()
         {
-            theStack.Push(new StackElement() { SelectedLine = wd.numeroLigneCurseur, RawText = string.Join(Environment.NewLine, wd.scriptLines) });
+            scriptStack.Push(new StackElement() { SelectedLine = wd.numeroLigneCurseur, RawText = string.Join(Environment.NewLine, wd.scriptLines) });
             DataInitialize();
         }
         
         public static void UpdateStackTopWithLineNumber()
         {
-            theStack.Peek().SelectedLine = wd.numeroLigneCurseur;
+            scriptStack.Peek().SelectedLine = wd.numeroLigneCurseur;
         }
         
         public static void DataInitialize()
         {
-            wd = new WorkData() { numeroLigneCurseur = theStack.Peek().SelectedLine };
+            wd = new WorkData() { numeroLigneCurseur = scriptStack.Peek().SelectedLine };
 
-            if (theStack.Peek().RawText.Contains(Environment.NewLine))
-                wd.scriptLines.AddRange(theStack.Peek().RawText.SplitTextOnLines());
+            if (scriptStack.Peek().RawText.Contains(Environment.NewLine))
+                wd.scriptLines.AddRange(scriptStack.Peek().RawText.SplitTextOnLines());
             else
-                wd.scriptLines.Add(theStack.Peek().RawText);
+                wd.scriptLines.Add(scriptStack.Peek().RawText);
         }
     }
 }

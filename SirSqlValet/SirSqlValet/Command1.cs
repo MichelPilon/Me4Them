@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Shell;
+using MSDI = Microsoft.Extensions.DependencyInjection;
 
 using SirSqlValet.Services;
 
@@ -31,11 +32,11 @@ namespace SirSqlValet
     /// </summary>
     internal sealed class Command1
     {
-        private static DTE2 _dte;
-        private static AsyncPackage _asyncPackage;
-        private static OleMenuCommandService _commandService;
+        private static DTE2                     _dte;
+        private static AsyncPackage             _asyncPackage;
+        private static OleMenuCommandService    _commandService;
 
-        private Microsoft.Extensions.DependencyInjection.ServiceProvider _serviceProvider;
+        private MSDI.ServiceProvider            _serviceProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Command1"/> class.

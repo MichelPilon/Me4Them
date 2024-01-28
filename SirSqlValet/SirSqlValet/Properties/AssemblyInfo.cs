@@ -7,12 +7,12 @@ using Microsoft.VisualStudio.Shell;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("SirSqlValet")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Select/Join helper for the databse from hell !!!  +  gizmos mineurs")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("MIB Galaktik 2024")]
 [assembly: AssemblyProduct("SirSqlValet")]
-[assembly: AssemblyCopyright("")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCopyright("@ MIB Galaktik 2024")]
+[assembly: AssemblyTrademark("MIB Galaktik 2024")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -32,3 +32,4 @@ using Microsoft.VisualStudio.Shell;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.0.5.0")]
 [assembly: AssemblyFileVersion("0.0.0.1")]
+[assembly: Guid("29AF2564-1D6D-45D7-A96A-955CAD4A9580")]

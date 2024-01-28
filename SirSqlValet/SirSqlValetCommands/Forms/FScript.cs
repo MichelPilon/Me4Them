@@ -22,28 +22,32 @@ namespace SirSqlValetCommands
     {
         private bool throughMyShowDialog = false;
 
-        public FScript()
+        public FScript(string textDocumentString = null, int topLineZeroBased = -1)
         {
+            NewScriptStack(textDocumentString, topLineZeroBased);
+
             InitializeComponent();
 
             splitContainer1.Panel1.BackColor    =   GCSS.SteelBlue_Dark.ToColor();
-            lWarning.BackColor                  =   GCSS.SteelBlue_Dark.ToColor();
 
-            lstScript.BackColor                 =   GCSS.SteelBlue_Dark.ToColor();
-            lstScript.ForeColor                 =   Color.Black;
             lstScript.BorderStyle               =   BorderStyle.FixedSingle;
 
-            bUndoAll.ForeColor                  =   GCSS.SteelBlue_Light.ToColor();
-            bUndo.ForeColor                     =   GCSS.SteelBlue_Light.ToColor();
-            bJoin.ForeColor                     =   GCSS.SteelBlue_Light.ToColor();
-            bOK.ForeColor                       =   GCSS.SteelBlue_Light.ToColor();
-            bCancel.ForeColor                   =   GCSS.SteelBlue_Light.ToColor();
+             bUndoAll.ForeColor                 =   GCSS.SteelBlue_Light.ToColor();
+                bUndo.ForeColor                 =   GCSS.SteelBlue_Light.ToColor();
+                bJoin.ForeColor                 =   GCSS.SteelBlue_Light.ToColor();
+                  bOK.ForeColor                 =   GCSS.SteelBlue_Light.ToColor();
+              bCancel.ForeColor                 =   GCSS.SteelBlue_Light.ToColor();
 
-            bUndoAll.BackColor                  =   GCSS.SteelBlue.ToColor();
-            bUndo.BackColor                     =   GCSS.SteelBlue.ToColor();
-            bJoin.BackColor                     =   GCSS.SteelBlue.ToColor();
-            bOK.BackColor                       =   GCSS.SteelBlue.ToColor();
-            bCancel.BackColor                   =   GCSS.SteelBlue.ToColor();
+            lstScript.ForeColor                 =   Color.Black;
+
+            lstScript.BackColor                 =   GCSS.SteelBlue_Dark.ToColor();
+             lWarning.BackColor                 =   GCSS.SteelBlue_Dark.ToColor();
+
+             bUndoAll.BackColor                 =   GCSS.SteelBlue.ToColor();
+                bUndo.BackColor                 =   GCSS.SteelBlue.ToColor();
+                bJoin.BackColor                 =   GCSS.SteelBlue.ToColor();
+                  bOK.BackColor                 =   GCSS.SteelBlue.ToColor();
+              bCancel.BackColor                 =   GCSS.SteelBlue.ToColor();
 
             throughMyShowDialog                 = false;
 
@@ -60,12 +64,12 @@ namespace SirSqlValetCommands
 
         private void AdjustUIContent()
         {
-            if (   bUndo.Visible != theStack.Count > 1)    bUndo.Visible = theStack.Count > 1;
-            if (bUndoAll.Visible != theStack.Count > 2) bUndoAll.Visible = theStack.Count > 2;
+            if (   bUndo.Visible != scriptStack.Count > 1)    bUndo.Visible = scriptStack.Count > 1;
+            if (bUndoAll.Visible != scriptStack.Count > 2) bUndoAll.Visible = scriptStack.Count > 2;
 
             if (bUndoAll.Visible)
             {
-                string newText = $"{bUndoAll.Tag} {theStack.Count - 1}";
+                string newText = $"{bUndoAll.Tag} {scriptStack.Count - 1}";
                 if (bUndoAll.Text != newText) bUndoAll.Text = newText;
             }
 

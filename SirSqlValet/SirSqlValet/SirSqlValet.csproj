@@ -56,7 +56,7 @@
     <CopyVsixExtensionFiles>True</CopyVsixExtensionFiles>
     <CopyVsixExtensionLocation>C:\Program Files %28x86%29\Microsoft SQL Server Management Studio 19\Common7\IDE\Extensions\SirSqlValet</CopyVsixExtensionLocation>
     <CreateVsixContainer>False</CreateVsixContainer>
-    <DeployExtension>True</DeployExtension>
+    <DeployExtension>False</DeployExtension>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -65,9 +65,8 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CopyVsixExtensionFiles>False</CopyVsixExtensionFiles>
-    <CopyVsixExtensionLocation>
-    </CopyVsixExtensionLocation>
+    <CopyVsixExtensionFiles>True</CopyVsixExtensionFiles>
+    <CopyVsixExtensionLocation>C:\Program Files %28x86%29\Microsoft SQL Server Management Studio 19\Common7\IDE\Extensions\SirSqlValet</CopyVsixExtensionLocation>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <CreateVsixContainer>False</CreateVsixContainer>
     <DeployExtension>False</DeployExtension>

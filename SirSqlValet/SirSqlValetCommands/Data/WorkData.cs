@@ -60,7 +60,7 @@ namespace SirSqlValetCommands.Data
         {
             get
             {
-                Regex selectRX = new Regex(@"^(\s|\t)*SELECT(\s|\t)", RegexOptions.IgnoreCase);
+                Regex selectRX = new Regex(@"^(?:\s|\t)*SELECT(?:\s|\t)", RegexOptions.IgnoreCase);
 
                 var BeforeCurseurVides = scriptLines.FromToIdx(BOF, numeroLigneCurseur).Where(_ => _._.isnws()).OrderBy(_ => _.i);
                 int line = !BeforeCurseurVides.Any() ? 0 : BeforeCurseurVides.Max(_ => _.i) + 1;
@@ -111,12 +111,12 @@ namespace SirSqlValetCommands.Data
                 int line = numeroLigneCurseur;
 
                 Group gAcronyme;
-                Match match = (new Regex(@"(?:FROM|JOIN)\s+(?:\w+\.\w+|\w+)\s+(?'acronyme'\w+)(?:\s|$)", RegexOptions.IgnoreCase)).Match(SafeGetLine(line));
+                Match match = (new Regex(@"(?:FROM|JOIN)(?:\s|\t)+(?:\w+\.\w+|\w+)(?:\s|\t)+(?'acronyme'\w+)(?:(?:\s|\t)|$)", RegexOptions.IgnoreCase)).Match(SafeGetLine(line));
                 
                 if (match.Success && ((gAcronyme = match.Groups["acronyme"]) != null))
                 {
                     line++;
-                    Regex rxFromJoin    = new Regex($@"JOIN(?:\s|\t)+(?:\w+\.\w+)(\s|\t).*(\s|\t){gAcronyme}\.", RegexOptions.IgnoreCase);
+                    Regex rxFromJoin    = new Regex($@"JOIN(?:\s|\t)+(?:\w+\.\w+)(?:\s|\t).*(?:\s|\t){gAcronyme}\.", RegexOptions.IgnoreCase);
                     try
                     {
                         line = scriptLines.FromToIdx(line, EOF).First(_ => !rxFromJoin.Match(_._).Success).i;
@@ -134,7 +134,7 @@ namespace SirSqlValetCommands.Data
         {
             get
             {
-                Regex rx = new Regex(@"^\s*FROM\s.*$", RegexOptions.IgnoreCase);
+                Regex rx = new Regex(@"^(?:\s|\t)*FROM(?:\s|\t).*$", RegexOptions.IgnoreCase);
                 int i = -1;
                 try
                 {

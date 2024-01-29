@@ -211,6 +211,10 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\Command1001_SirSqlValet.cs" />
+    <Compile Include="Commands\Command1003_RotateExecContext.cs" />
+    <Compile Include="Commands\Command1005_SingleLine.cs" />
+    <Compile Include="Commands\Command1004_QuoteUnquote.cs" />
     <Compile Include="Commands\Command1002_SwitchComment.cs" />
     <Compile Include="Data\Arrow.cs" />
     <Compile Include="Data\BD_Schema.cs" />

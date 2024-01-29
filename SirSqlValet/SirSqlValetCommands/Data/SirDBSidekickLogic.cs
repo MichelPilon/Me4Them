@@ -40,6 +40,12 @@ namespace SirSqlValetCommands.Data
                 return "La ligne sélectionnée est vide";
 
             // ==============================================================================================================================
+            // S O R T I E   P O S S I B L E  -  positionné sur une ligne vide
+            // ==============================================================================================================================
+            if (wd.SafeGetLine(wd.numeroLigneCurseur).Trim()[wd.SafeGetLine(wd.numeroLigneCurseur).Trim().Length - 1] == ';')
+                return "La ligne se termine avec un ';'. Ce n'est pas supporté.";
+
+            // ==============================================================================================================================
             // S O R T I E   P O S S I B L E  -  dans le cas où le curseur est dans un groupe de lignes où il n'y a pas d'énoncé "FROM ..."
             // ==============================================================================================================================
             if (wd.LineInsertSuperieur == -1)
@@ -75,7 +81,7 @@ namespace SirSqlValetCommands.Data
             // on identifie un  prefix si présent et un acronyme si présent
             // ------------------------------------------------------------------------------------------------------------------------------
             MatchCollection matchesAroundSelectedTable;
-            if ((matchesAroundSelectedTable = (new Regex($@"^.*(?:FROM|JOIN)\s+((?'prefix'\w+)\.)?{wd.selectedTable}\s+(?'acronyme'\w+).*$", RegexOptions.Compiled | RegexOptions.IgnoreCase)).Matches(wd.SafeGetLine(wd.numeroLigneCurseur))).Count == 1)
+            if ((matchesAroundSelectedTable = (new Regex($@"^.*(?:FROM|JOIN)(?:\s|\t)+((?'prefix'\w+)\.)?{wd.selectedTable}(?:\s|\t)+(?'acronyme'\w+).*$", RegexOptions.Compiled | RegexOptions.IgnoreCase)).Matches(wd.SafeGetLine(wd.numeroLigneCurseur))).Count == 1)
                 foreach (Group group in matchesAroundSelectedTable[0].Groups)
                     if (group.Success)
                         if (group.Name == "prefix")
@@ -179,8 +185,8 @@ namespace SirSqlValetCommands.Data
 
                 while (true)
                 {
-                    if (new Regex($@"FROM\s+\w+\s+{PossibleAcronyme}(\s|$)", RegexOptions.IgnoreCase | RegexOptions.Multiline).Matches(texteRecherche).Count == 0)
-                        if (new Regex($@"JOIN\s+(\w+\.)?\w+\s+{PossibleAcronyme}\s+ON\s.*$", RegexOptions.IgnoreCase | RegexOptions.Multiline).Matches(texteRecherche).Count == 0)
+                    if (new Regex($@"FROM(?:\s|\t)+\w+(?:\s|\t)+{PossibleAcronyme}((?:\s|\t)|$)", RegexOptions.IgnoreCase | RegexOptions.Multiline).Matches(texteRecherche).Count == 0)
+                        if (new Regex($@"JOIN(?:\s|\t)+(\w+\.)?\w+(?:\s|\t)+{PossibleAcronyme}(?:\s|\t)+ON(?:\s|\t).*$", RegexOptions.IgnoreCase | RegexOptions.Multiline).Matches(texteRecherche).Count == 0)
                             break;
 
                     // --------------------------------------------------------------------------------------------------
@@ -348,7 +354,7 @@ namespace SirSqlValetCommands.Data
             // --------------------------------------------------------------------------------------------------
             // verifier si la table de base ne fait pas déjà parti de la liste des SELECT
             // --------------------------------------------------------------------------------------------------
-            Regex rxSelect = new Regex(string.Format(@"^.*\'-----\s{0}_{1}\s-----\'\s+AS\s+\[-----\s{0}_{1}\s-----\]\s*\,.*$", wd.selectedTable, wd.selectedAcronyme), RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.IgnoreCase);
+            Regex rxSelect = new Regex(string.Format(@"^.*\'-----(?:\s|\t){0}_{1}(?:\s|\t)-----\'(?:\s|\t)+AS(?:\s|\t)+\[-----(?:\s|\t){0}_{1}(?:\s|\t)-----\](?:\s|\t)*\,.*$", wd.selectedTable, wd.selectedAcronyme), RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.IgnoreCase);
             if (rxSelect.Matches(TexteRequete).Count == 0)
             {
                 Groupes = BatirGroupeSuperieurEtBonification(true, wd.selectedTable, wd.selectedAcronyme, wd.selectedTable, TexteRequete, GroupeSuperieur, GroupeInferieur, wd.derniereLigneRequete - wd.premiereLigneRequete + 1);
@@ -423,7 +429,7 @@ namespace SirSqlValetCommands.Data
             foreach (int i in RangeFromTo(wd.premiereLigneRequete, wd.numeroLigneCurseur))
             {
                 MatchCollection matchesForSelect;
-                if ((matchesForSelect = (new Regex(@"(?'debut'^.*SELECT)(?'etoile'(?'espaces'\s*)\*)?(?'reste'.*$)", RegexOptions.Compiled | RegexOptions.IgnoreCase)).Matches(wd.SafeGetLine(i))).Count == 1)
+                if ((matchesForSelect = (new Regex(@"(?'debut'^.*SELECT)(?'etoile'(?'espaces'(?:\s|\t)*)\*)?(?'reste'.*$)", RegexOptions.Compiled | RegexOptions.IgnoreCase)).Matches(wd.SafeGetLine(i))).Count == 1)
                     foreach (Group group in matchesForSelect[0].Groups)
                         if (group.Success)
                             if (group.Name == "etoile")
@@ -458,7 +464,7 @@ namespace SirSqlValetCommands.Data
             }
 
             string  select          = "SELECT";
-            bool    selectFinal     = Regex.IsMatch(wd.SafeGetLine(wd.premiereLigneRequete), $@"^(\s|\t)*{select}(\s|\t)*'(\s|\t)*'(\s|\t)*\[(\s|\t)*\](\s|\t)*$");
+            bool    selectFinal     = Regex.IsMatch(wd.SafeGetLine(wd.premiereLigneRequete), $@"^(?:\s|\t)*{select}(?:\s|\t)*'(?:\s|\t)*'(?:\s|\t)*\[(?:\s|\t)*\](?:\s|\t)*$");
             if (!selectFinal)
             {
                 string  premiereLigne   = wd.SafeGetLine(wd.premiereLigneRequete);
@@ -477,7 +483,7 @@ namespace SirSqlValetCommands.Data
             if (deuxiemeLigne.Trim() != titleElement)
             {
                 string  premiereLigne           = wd.SafeGetLine(wd.premiereLigneRequete);
-                bool    alreadyATitleElement    = Regex.IsMatch(deuxiemeLigne, $@",'{equal5}\s.*\s{equal5}'(\s|\t)+AS(\s|\t)+\[{equal5}\s.*\s{equal5}\]");
+                bool    alreadyATitleElement    = Regex.IsMatch(deuxiemeLigne, $@",'{equal5}(?:\s|\t).*(?:\s|\t){equal5}'(?:\s|\t)+AS(?:\s|\t)+\[{equal5}(?:\s|\t).*(?:\s|\t){equal5}\]");
                 
                 deuxiemeLigne = premiereLigne.Substring(0, premiereLigne.IndexOf(select)) + titleElement;
                 
@@ -494,7 +500,7 @@ namespace SirSqlValetCommands.Data
             // insertion des lignes de code dans les FROM/JOIN
             // ------------------------------------------------------------------------------------------------------------------------------
             MatchCollection mctemp;
-            int largeurMarge = (mctemp = (new Regex(@"^\s*(.)", RegexOptions.Compiled | RegexOptions.Singleline)).Matches(wd.SafeGetLine(wd.numeroLigneCurseur))).Count == 1 ? mctemp[0].Groups[1].Index : 0;
+            int largeurMarge = (mctemp = (new Regex(@"^(?:\s|\t)*(.)", RegexOptions.Compiled | RegexOptions.Singleline)).Matches(wd.SafeGetLine(wd.numeroLigneCurseur))).Count == 1 ? mctemp[0].Groups[1].Index : 0;
             
             if (wd.LineInsertInferieur <= wd.derniereLigneRequete)
                 wd.scriptLines.InsertRange(wd.LineInsertInferieur, AjouteMarge(wd.groupeInferieur, largeurMarge));
@@ -522,8 +528,8 @@ namespace SirSqlValetCommands.Data
             SuperListeAlignement.Add(new List<Tuple<string, int, int>>());
             SuperListeAlignement.Add(new List<Tuple<string, int, int>>());
 
-            ListRegExSelectionLigne.Add(new Regex(@"[-=]\'\s+(AS)\s+\[[-=]", RegexOptions.Compiled | RegexOptions.IgnoreCase));
-            ListRegExSelectionLigne.Add(new Regex(@"(?:JOIN|FROM)\s+((\w+|\[\w+\])|(\w+|\[\w+\])\.(\w+|\[\w+\]))\s+\w+(?:\s+|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase));
+            ListRegExSelectionLigne.Add(new Regex(@"[-=]\'(?:\s|\t)+(AS)(?:\s|\t)+\[[-=]", RegexOptions.Compiled | RegexOptions.IgnoreCase));
+            ListRegExSelectionLigne.Add(new Regex(@"(?:JOIN|FROM)(?:\s|\t)+((\w+|\[\w+\])|(\w+|\[\w+\])\.(\w+|\[\w+\]))\s+\w+(?:(?:\s|\t)+|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase));
 
             foreach (int ligne in RangeFromTo(wd.premiereLigneRequete, wd.derniereLigneRequete))
                 foreach (int i in RangeFromTo(0, 1))
@@ -562,10 +568,10 @@ namespace SirSqlValetCommands.Data
             string cf   = @")";                                         // "}"
             string o    = @"[<=>]{1,2}";                                // "o."
             string w    = @"(\w+|\[\w+\])";                             // "w."
-            string wb   = @"\[[-=]*_(\w|\s)+_[-=]*\]";                  // "wb."
-            string wp   = @"[ ,]\'[-=]*_(\w|\s)+_[-=]*\'";              // "wp."
-            string __   = @"\s+";                                       // "__"
-            string _    = @"\s*";                                       // "_"
+            string wb   = @"\[[-=]*_(\w|(?:\s|\t))+_[-=]*\]";           // "wb."
+            string wp   = @"[ ,]\'[-=]*_(\w|(?:\s|\t))+_[-=]*\'";       // "wp."
+            string __   = @"(?:\s|\t)+";                                // "__"
+            string _    = @"(?:\s|\t)*";                                // "_"
 
             // ------------------------------------------------------------------------------------------------------------------------------
             // regex pour l'alignement des lignes du SELECT

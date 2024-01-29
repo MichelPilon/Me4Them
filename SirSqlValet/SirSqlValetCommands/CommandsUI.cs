@@ -12,7 +12,6 @@ using SirSqlValetCommands.Data;
 using SirSqlValetCore.Integration;
 
 using static SirSqlValetCommands.Data.SVCGlobal;
-using System.Windows;
 using System.Windows.Forms;
 
 
@@ -20,7 +19,7 @@ namespace SirSqlValetCommands
 {
     public class CommandsUI
     {
-        private enum enumNBase
+        public enum enumNBase
         {
             enbZero = 0,
             enbOne  = 1
@@ -32,20 +31,25 @@ namespace SirSqlValetCommands
         private Document                document;
 
         private TextDocument            textDocumentObj;
-        private string                  textDocumentString;
-        private IEnumerable<string>     textDocumentLines;
+
+        private string                 _textDocumentString;
+        public  string                  textDocumentString => _textDocumentString;
+
+        private IEnumerable<string>    _textDocumentLines;
+        public  IEnumerable<string>     textDocumentLines => _textDocumentLines;
 
         private EnvDTE.TextSelection    textSelectionObj;
-        private string                  textSelectionString;
+        private string                 _textSelectionString;
+        public  string                  textSelectionString => _textSelectionString;
 
         private int                     TL1;
         private int                     TC1;
         private int                     BL1;
         private int                     BC1;
-        private int                     TL(enumNBase b) => TL1 - (b == enumNBase.enbZero ? 1 : 0);
-        private int                     TC(enumNBase b) => TC1 - (b == enumNBase.enbZero ? 1 : 0);
-        private int                     BL(enumNBase b) => BL1 - (b == enumNBase.enbZero ? 1 : 0);
-        private int                     BC(enumNBase b) => BC1 - (b == enumNBase.enbZero ? 1 : 0);
+        public  int                     TL(enumNBase b) => TL1 - (b == enumNBase.enbZero ? 1 : 0);
+        public  int                     TC(enumNBase b) => TC1 - (b == enumNBase.enbZero ? 1 : 0);
+        public  int                     BL(enumNBase b) => BL1 - (b == enumNBase.enbZero ? 1 : 0);
+        public  int                     BC(enumNBase b) => BC1 - (b == enumNBase.enbZero ? 1 : 0);
 
         public CommandsUI(PackageProvider packageProvider)
         {
@@ -61,55 +65,56 @@ namespace SirSqlValetCommands
 
             isRegistered = true;
 
-            var handlers = new (EventHandler eh, int id)[] { (Sir_Sql_Valet, 1001), (switch_comment, 1002), (exec_context, 1003), (quote_unquote, 1004), (single_line, 1005) };
+            var handlers = new (EventHandler eh, int id)[]{ (Sir_Sql_Valet,     1001), 
+                                                            (switch_comment,    1002), 
+                                                            (exec_context,      1003), 
+                                                            (quote_unquote,     1004), 
+                                                            (single_line,       1005) };
 
             foreach (var handler in handlers)
                 packageProvider.CommandService.AddCommand(new MenuCommand(handler.eh, new CommandID(MenuHelper.CommandSet, handler.id)));
         }
 
-        private IEnumerable<string> GetQueryText()
+        private void GetQueryText()
         {
             document = packageProvider.Dte2.ActiveDocument;
             if (document == null)
-                return new List<string>().AsEnumerable();
+                return;
 
             textDocumentObj     = (TextDocument)document.Object("TextDocument");
-            textDocumentString  = textDocumentObj.StartPoint.CreateEditPoint().GetText(textDocumentObj.EndPoint);
-            textDocumentLines   = textDocumentString.SplitTextOnLines();
+           _textDocumentString  = textDocumentObj.StartPoint.CreateEditPoint().GetText(textDocumentObj.EndPoint);
+           _textDocumentLines   =_textDocumentString.SplitTextOnLines();
             
             textSelectionObj    = textDocumentObj.Selection;
-            textSelectionString = textSelectionObj.TopPoint.CreateEditPoint().GetText(textSelectionObj.BottomPoint);
+           _textSelectionString = textSelectionObj.TopPoint.CreateEditPoint().GetText(textSelectionObj.BottomPoint);
             TL1                 = textSelectionObj.TopPoint.Line;
             TC1                 = textSelectionObj.TopPoint.LineCharOffset;
             BL1                 = textSelectionObj.BottomPoint.Line;
             BC1                 = textSelectionObj.BottomPoint.LineCharOffset;
-
-            return textDocumentLines;
         }
-        private void SetQueryText_MergeNewText(string newText) => SetQueryText_MergeNewLines(newText.SplitTextOnLines());
         private void SetQueryText_MergeNewLines(IEnumerable<string> newLines)
         {
             int index_top_both = -1;
-            for (int i = 0; index_top_both == -1 && i < Math.Min(textDocumentLines.Count(), newLines.Count()); i++)
-                if (textDocumentLines.ElementAt(i) != newLines.ElementAt(i))
+            for (int i = 0; index_top_both == -1 && i < Math.Min(_textDocumentLines.Count(), newLines.Count()); i++)
+                if (_textDocumentLines.ElementAt(i) != newLines.ElementAt(i))
                     index_top_both = i;
 
             if (index_top_both.Equals(-1))
                 return;
 
             int index_end = -1;
-            for (int i = 0; index_end == -1 && i < Math.Min(textDocumentLines.Count(), newLines.Count()); i++)
-                if (textDocumentLines.ElementAt(textDocumentLines.Count() - 1 - i) != newLines.ElementAt(newLines.Count() - 1 - i))
+            for (int i = 0; index_end == -1 && i < Math.Min(_textDocumentLines.Count(), newLines.Count()); i++)
+                if (_textDocumentLines.ElementAt(_textDocumentLines.Count() - 1 - i) != newLines.ElementAt(newLines.Count() - 1 - i))
                     index_end = i;
 
             if (index_end.Equals(-1))
                 return;
 
-            int index_end_original  = textDocumentLines.Count() - 1 - index_end;
+            int index_end_original  = _textDocumentLines.Count() - 1 - index_end;
             int index_end_new       =          newLines.Count() - 1 - index_end;
 
                    newLines         = newLines.Skip(index_top_both).Take(index_end_new - index_top_both + 1);
-            string newText          = newLines.Join(Environment.NewLine, after: index_end_original < textDocumentLines.Count() - 1);
+            string newText          = newLines.Join(Environment.NewLine, after: index_end_original < _textDocumentLines.Count() - 1);
 
             textSelectionObj.MoveToLineAndOffset(index_top_both + 1, 1);
             textSelectionObj.LineDown(Count: index_end_original - index_top_both + 1, Extend: true);
@@ -122,12 +127,9 @@ namespace SirSqlValetCommands
 
         private void InitializeBefore_SpecificCommandExecution() => GetQueryText();
 
-        private void MergeNewScriptInCurrentScript(IEnumerable<string> newLines)
+        private void ReplaceCurrentSelection(string newSelection)
         {
-            SetQueryText_MergeNewLines(newLines);
-
-            textDocumentLines   = newLines;
-            textDocumentString  = textDocumentLines.Join();
+            textDocumentObj.Selection.Insert(newSelection, vsInsertFlagsCollapseToEndValue: 0);
         }
 
         private void ShowMessage_ComingSoon(string texte)
@@ -136,17 +138,19 @@ namespace SirSqlValetCommands
         }
         private void ShowMessage_Error(string texte, Exception exception)
         {
-            texte = $"{texte} : ERREUR";
+            Func<string, Exception, string> AddToText = (s, e) => s + Environment.NewLine + Environment.NewLine + e.Message;
+
+            string message = AddToText($"{texte} : ERREUR", exception);
 
             while ((exception = exception.InnerException) != null)
-                texte += Environment.NewLine + Environment.NewLine + exception.Message;
+                message = AddToText(message, exception);
 
-            F.MessageBox.Show(texte, texte.Substring(0, texte.IndexOf(' ')), MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            F.MessageBox.Show(message, texte, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         }
 
         public static string GetCurrentMethodName([System.Runtime.CompilerServices.CallerMemberName] string memberName = "")
         {
-            return memberName; // This will return "Main"
+            return memberName;
         }
 
         private void Sir_Sql_Valet(object sender, EventArgs _e)
@@ -154,7 +158,7 @@ namespace SirSqlValetCommands
             try
             {
                 InitializeBefore_SpecificCommandExecution();
-                MergeNewScriptInCurrentScript(new FScript(textDocumentString, TL(enumNBase.enbZero)).MyShowDialog());
+                SetQueryText_MergeNewLines(Command1001_SirSqlValet.Execute(this));
             }
             catch (Exception exception)
             {
@@ -166,7 +170,7 @@ namespace SirSqlValetCommands
             try
             {
                 InitializeBefore_SpecificCommandExecution();
-                MergeNewScriptInCurrentScript(Command1002_SwitchComment.Execute(textDocumentLines, TL(enumNBase.enbZero)));
+                SetQueryText_MergeNewLines(Command1002_SwitchComment.Execute(textDocumentLines, TL(enumNBase.enbZero)));
             }
             catch (Exception exception)
             {
@@ -178,7 +182,7 @@ namespace SirSqlValetCommands
             try
             {
                 InitializeBefore_SpecificCommandExecution();
-                ShowMessage_ComingSoon(GetCurrentMethodName());
+                SetQueryText_MergeNewLines(Command1003_RotateExecContext.Execute(this));
             }
             catch (Exception exception)
             {
@@ -190,7 +194,7 @@ namespace SirSqlValetCommands
             try
             {
                 InitializeBefore_SpecificCommandExecution();
-                ShowMessage_ComingSoon(GetCurrentMethodName());
+                ReplaceCurrentSelection(Command1004_QuoteUnquote.Execute(this));
             }
             catch (Exception exception)
             {
@@ -202,13 +206,12 @@ namespace SirSqlValetCommands
             try
             {
                 InitializeBefore_SpecificCommandExecution();
-                ShowMessage_ComingSoon(GetCurrentMethodName());
+                ReplaceCurrentSelection(Command1005_SingleLine.Execute(this));
             }
             catch (Exception exception)
             {
                 ShowMessage_Error(GetCurrentMethodName(), exception);
             }
         }
-
     }
 }

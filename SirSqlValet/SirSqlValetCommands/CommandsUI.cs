@@ -12,12 +12,11 @@ using SirSqlValetCore.Integration;
 using SirSqlValetCore.Integration.ObjectExplorer;
 using SirSqlValetCore.App;
 
-using static SirSqlValetCommands.Data.SVCGlobal;
 using System.Windows.Forms;
 
 using Microsoft.SqlServer.Management.Smo.RegSvrEnum;
 using Microsoft.SqlServer.Management.UI.VSIntegration.ObjectExplorer;
-
+using System.Threading.Tasks;
 
 namespace SirSqlValetCommands
 {
@@ -249,19 +248,33 @@ namespace SirSqlValetCommands
 
             try
             {
-                _objectExplorerInteraction.ConnectServer("ccqsql044190");
-                _objectExplorerInteraction.ConnectServer("ccqsql044180");
-                _objectExplorerInteraction.ConnectServer("ccqsql044170");
-                _objectExplorerInteraction.ConnectServer("ccqsql046039");
-                _objectExplorerInteraction.ConnectServer("prodex-sql");
-                _objectExplorerInteraction.ConnectServer("prodin-sql");
+                var servers     = CMInfos.cminfos
+                                         .Where (_  => _.GROUP_NAME == "SIR" && _.SERVER_NAME.notisnws())
+                                         .Select(_  => (SN: _.SERVER_NAME, FN: _.FriendlyName(), STAR: _.DISPLAY_NAME.Contains('*')?1:0 ))
+                                         .OrderBy(_ => _.STAR).ThenBy(_ => _.FN);
+
+                servers = servers.OrderBy(_ => _.STAR).OrderBy(_ => _.FN);
+
+                foreach (var _ in servers)
+                {
+                    _objectExplorerInteraction.ConnectServer(_.SN, _.FN);
+                    Application.DoEvents();
+                }
+
+                SendKeys.SendWait("{HOME}");
+                Application.DoEvents();
+                for (int i = 1; i <= servers.Count(); i++) 
+                {
+                    SendKeys.SendWait("{LEFT}");
+                    Application.DoEvents();
+                    SendKeys.SendWait("{DOWN}");
+                    Application.DoEvents();
+                } 
             }
             catch (Exception exception)
             {
                 ShowMessage_Error(GetCurrentMethodName(), exception);
             }
         }
-
-
     }
 }

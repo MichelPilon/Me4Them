@@ -6,6 +6,6 @@ namespace SirSqlValetCore.Integration.ObjectExplorer
     public interface IObjectExplorerInteraction
     {
         Task SelectNodeAsync(string server, string dbName, IReadOnlyCollection<string> itemPath);
-        void ConnectServer(string server);
+        void ConnectServer(string server, string displayName = "");
     }
 }

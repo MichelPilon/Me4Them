@@ -228,6 +228,7 @@
     <Compile Include="Data\BD_Schema.cs" />
     <Compile Include="CommandsPlugin.cs" />
     <Compile Include="CommandsUI.cs" />
+    <Compile Include="Data\CMInfo.cs" />
     <Compile Include="Data\GCSS.cs" />
     <Compile Include="Forms\FJoin.cs">
       <SubType>Form</SubType>

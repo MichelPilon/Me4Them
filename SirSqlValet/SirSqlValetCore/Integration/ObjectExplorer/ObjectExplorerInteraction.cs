@@ -26,7 +26,7 @@ namespace SirSqlValetCore.Integration.ObjectExplorer
             ObjectExplorerHelper.SelectNode(objectExplorer, objNode);
         }
 
-        public async void ConnectServer(string server)
+        public async void ConnectServer(string server, string displayName = "")
         {
             if (_objectExplorer is null)
                 _objectExplorer = (await _packageProvider.AsyncPackage.GetServiceAsync(typeof(IObjectExplorerService))) as IObjectExplorerService;
@@ -35,7 +35,7 @@ namespace SirSqlValetCore.Integration.ObjectExplorer
             ci.ServerName           = server;
             ci.ServerType           = new Guid("8c91a03d-f9b4-46c0-a305-b5dcc79ff907");
             ci.AuthenticationType   = 0;
-            ci.DisplayName          = server;
+            ci.DisplayName          = !string.IsNullOrWhiteSpace(displayName) ? displayName : server;
 
            _objectExplorer.ConnectToServer(ci);
         }

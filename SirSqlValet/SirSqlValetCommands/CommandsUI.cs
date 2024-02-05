@@ -17,6 +17,7 @@ using System.Windows.Forms;
 using Microsoft.SqlServer.Management.Smo.RegSvrEnum;
 using Microsoft.SqlServer.Management.UI.VSIntegration.ObjectExplorer;
 using System.Threading.Tasks;
+using SirSqlValetCommands.Forms;
 
 namespace SirSqlValetCommands
 {
@@ -55,14 +56,15 @@ namespace SirSqlValetCommands
         public  int BL(enumNBase b) => BL1 - (b == enumNBase.enbZero ? 1 : 0);
         public  int BC(enumNBase b) => BC1 - (b == enumNBase.enbZero ? 1 : 0);
 
+        private List<string> lastSelectedKeywords = new List<string>();
+
         public CommandsUI(PackageProvider packageProvider, IObjectExplorerInteraction objectExplorerInteraction, IWorkingDirProvider ssmsWorkingDirProvider)
         {
             _packageProvider            = packageProvider;
             _objectExplorerInteraction  = objectExplorerInteraction;
             _ssmsWorkingDirProvider     = ssmsWorkingDirProvider;
 
-          //SVCGlobal.statusText = "";
-          //F.MessageBox.Show($"Coucou ! ;-)", $"", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            SVCGlobal.statusText = "";
         }
 
         public void Register()
@@ -214,17 +216,6 @@ namespace SirSqlValetCommands
         {
             try
             {
-                //  ObjectExplorerInteraction objectExplorerInteraction = null;
-                //  
-                //  //Action<IObjectExplorerInteraction> getOEI = async oei => { oei = (await packageProvider.AsyncPackage.GetServiceAsync(typeof(IObjectExplorerInteraction))) as ObjectExplorerInteraction; };
-                //  //getOEI(objectExplorerInteraction);  
-                //  objectExplorerInteraction = new ObjectExplorerInteraction(packageProvider);
-                //  
-                //  Action<string> connect = async serverName => await objectExplorerInteraction.ConnectServer(serverName);
-                //  connect("ccqsql044190");
-                //  
-                //  //Action<string, IObjectExplorerInteraction> connect = (serverName, oei) => {  ; };
-
                 InitializeBeforeCommandExecution();
                 ReplaceCurrentSelection(Command1005_SingleLine.Execute(this));
             }
@@ -238,43 +229,114 @@ namespace SirSqlValetCommands
             if (_objectExplorer is null)
                 _objectExplorer = (await _packageProvider.AsyncPackage.GetServiceAsync(typeof(IObjectExplorerService))) as IObjectExplorerService;
 
-            INodeInformation[] ini;
-            _objectExplorer.GetSelectedNodes(out int arraySize, out ini);
-            while (arraySize > 0)
-            {
-                _objectExplorer.DisconnectSelectedServer();
-                _objectExplorer.GetSelectedNodes(out arraySize, out ini);
-            }
-
             try
             {
-                var servers     = CMInfos.cminfos
-                                         .Where (_  => _.GROUP_NAME == "SIR" && _.SERVER_NAME.notisnws())
-                                         .Select(_  => (SN: _.SERVER_NAME, FN: _.FriendlyName(), STAR: _.DISPLAY_NAME.Contains('*')?1:0 ))
-                                         .OrderBy(_ => _.STAR).ThenBy(_ => _.FN);
+                // if no server definition, attempt to load from .json
+                if (!CMInfos.cminfos().Any())
+                { 
+                    CMInfos.Load(_ssmsWorkingDirProvider.GetWorkingDir());
+                    if (!CMInfos.cminfos().Any())
+                        return; // if STILL no server definition, get the fuck out
+                }
 
-                servers = servers.OrderBy(_ => _.STAR).OrderBy(_ => _.FN);
+                // aller chercher la selection du user
+                FKeywords fKeywords = new FKeywords(CMInfos.keyWords);
+                List<string> selected = fKeywords.MyShowDialog(lastSelectedKeywords).ToList();
+                fKeywords.Dispose();
+                fKeywords = null;
+
+                // pas de selection
+                if (!selected.Any())
+                    return; // ou on termine
+
+                // disconnect all connections
+                INodeInformation[] ini;
+                _objectExplorer.GetSelectedNodes(out int arraySize, out ini);
+                while (arraySize > 0)
+                {
+                    _objectExplorer.DisconnectSelectedServer();
+                    _objectExplorer.GetSelectedNodes(out arraySize, out ini);
+                }
+
+                lastSelectedKeywords.Clear();
+                lastSelectedKeywords.AddRange(selected);
+
+                var servers = CMInfos.cminfos() .Where  (_ => selected.All(s => _.KEYWORDS.Contains(s)))
+                                                .OrderBy(_ => _.NSTAR()).ThenBy(_ => _.FriendlyName());
+
+                foreach (var _ in servers)
+                    ConnectAndDoEvents(_);
+
+                foreach (var i in Enumerable.Range(1, 10))
+                {
+                    Application.DoEvents();
+                    Task.Delay(20).Wait();
+                }
 
                 foreach (var _ in servers)
                 {
-                    _objectExplorerInteraction.ConnectServer(_.SN, _.FN);
-                    Application.DoEvents();
+                    ObjectExplorerServer snode = ObjectExplorerHelper.GetServerHierarchyNode(_objectExplorer, _.SERVER);
+                    ObjectExplorerHelper.SelectNode(_objectExplorer, snode.Root);
+                    foreach (var i in Enumerable.Range(1, 10))
+                    {
+                        Application.DoEvents();
+                        Task.Delay(10).Wait();
+                    }
+
+                    if (_.STAR() || servers.Count() == 1)
+                    {
+                        SendKeys.SendWait("{RIGHT}");
+                        Application.DoEvents();
+                        Task.Delay(100).Wait();
+                        SendKeys.SendWait("{RIGHT}");
+                        Application.DoEvents();
+                        Task.Delay(100).Wait();
+                    }
+                    else
+                    {
+                        SendKeys.SendWait("{LEFT}");
+                        Application.DoEvents();
+                        Task.Delay(100).Wait();
+                    }
                 }
 
-                SendKeys.SendWait("{HOME}");
-                Application.DoEvents();
-                for (int i = 1; i <= servers.Count(); i++) 
-                {
-                    SendKeys.SendWait("{LEFT}");
-                    Application.DoEvents();
-                    SendKeys.SendWait("{DOWN}");
-                    Application.DoEvents();
-                } 
+                //IReadOnlyCollection<ObjectExplorerServer> x = ObjectExplorerHelper.GetServersConnection(_objectExplorer);
+                //foreach (ObjectExplorerServer xx in x)
+                //{ 
+                //    if (xx.Root.IsExpanded)
+                //    { 
+                //        xx.Root.Collapse();
+                //        Application.DoEvents();
+                //    }
+                //
+                //    Application.DoEvents();
+                //}
             }
             catch (Exception exception)
             {
                 ShowMessage_Error(GetCurrentMethodName(), exception);
             }
         }
+
+        private void ConnectAndDoEvents(CMInfo cmi)
+        {
+            _objectExplorerInteraction.ConnectServer(cmi.SERVER, cmi.FriendlyName());
+            foreach (var i in Enumerable.Range(1, 10))
+            {
+                Application.DoEvents();
+                Task.Delay(20).Wait();
+            }
+        }
+
+        //private void SendKeysWaitDoEvents(string text) => SendKeysWaitDoEvents(new[] { text });
+        //private void SendKeysWaitDoEvents(IEnumerable<string> keys)
+        //{
+        //    foreach (var key in keys) 
+        //    {
+        //        SendKeys.SendWait(key);
+        //        Application.DoEvents();
+        //        System.Threading.Thread.Sleep(200);
+        //    }
+        //}
     }
 }

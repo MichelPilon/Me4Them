@@ -22,9 +22,6 @@ namespace SirSqlValetCommands
     {
         private bool throughMyShowDialog = false;
 
-        int mouseListIndex = 0;
-        int mouseItemIndex = -1;
-
         int[] sel123 = new[] { -1, -1, -1 };
         List<List<string>> list123;
         List<ListBox> listbox123;

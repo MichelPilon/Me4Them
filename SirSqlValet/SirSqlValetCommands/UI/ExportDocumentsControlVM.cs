@@ -35,6 +35,8 @@
 
         private async Task OnExportFiles()
         {
+            await Task.Delay(1);
+
             this.CancelToken = new CancellationTokenSource();
             IsExporting = true;
             ConsoleOutput.SendStandard("Starting Export");

@@ -235,7 +235,6 @@ namespace SirSqlValetCommands
             this.Name = "FScript";
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
-            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Sir Sql Valet";
             this.Shown += new System.EventHandler(this.FScript_Shown);

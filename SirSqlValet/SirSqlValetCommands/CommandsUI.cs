@@ -8,12 +8,17 @@ using EnvDTE;
 
 using SirSqlValetCommands.Commands;
 using SirSqlValetCommands.Data;
-
 using SirSqlValetCore.Integration;
+using SirSqlValetCore.Integration.ObjectExplorer;
+using SirSqlValetCore.App;
 
-using static SirSqlValetCommands.Data.SVCGlobal;
 using System.Windows.Forms;
 
+using Microsoft.SqlServer.Management.Smo.RegSvrEnum;
+using Microsoft.SqlServer.Management.UI.VSIntegration.ObjectExplorer;
+using System.Threading.Tasks;
+using SirSqlValetCommands.Forms;
+using System.IO;
 
 namespace SirSqlValetCommands
 {
@@ -25,37 +30,40 @@ namespace SirSqlValetCommands
             enbOne  = 1
         }
 
-        private bool                    isRegistered;
+        private bool                            isRegistered;
 
-        private PackageProvider         packageProvider;
-        private Document                document;
+        private PackageProvider                _packageProvider;
+        private IObjectExplorerInteraction     _objectExplorerInteraction;
+        private IWorkingDirProvider            _ssmsWorkingDirProvider;
+        private IObjectExplorerService         _objectExplorer;
 
-        private TextDocument            textDocumentObj;
+        private Document                        document;
+        private TextDocument                    textDocumentObj;
+                private string                 _textDocumentString;
+                public  string                  textDocumentString => _textDocumentString;
+                private IEnumerable<string>    _textDocumentLines;
+                public  IEnumerable<string>     textDocumentLines => _textDocumentLines;
 
-        private string                 _textDocumentString;
-        public  string                  textDocumentString => _textDocumentString;
+        private TextSelection                   textSelectionObj;
+                private string                 _textSelectionString;
+                public  string                  textSelectionString => _textSelectionString;
 
-        private IEnumerable<string>    _textDocumentLines;
-        public  IEnumerable<string>     textDocumentLines => _textDocumentLines;
+        private int TL1;
+        private int TC1;
+        private int BL1;
+        private int BC1;
+        public  int TL(enumNBase b) => TL1 - (b == enumNBase.enbZero ? 1 : 0);
+        public  int TC(enumNBase b) => TC1 - (b == enumNBase.enbZero ? 1 : 0);
+        public  int BL(enumNBase b) => BL1 - (b == enumNBase.enbZero ? 1 : 0);
+        public  int BC(enumNBase b) => BC1 - (b == enumNBase.enbZero ? 1 : 0);
 
-        private EnvDTE.TextSelection    textSelectionObj;
-        private string                 _textSelectionString;
-        public  string                  textSelectionString => _textSelectionString;
-
-        private int                     TL1;
-        private int                     TC1;
-        private int                     BL1;
-        private int                     BC1;
-        public  int                     TL(enumNBase b) => TL1 - (b == enumNBase.enbZero ? 1 : 0);
-        public  int                     TC(enumNBase b) => TC1 - (b == enumNBase.enbZero ? 1 : 0);
-        public  int                     BL(enumNBase b) => BL1 - (b == enumNBase.enbZero ? 1 : 0);
-        public  int                     BC(enumNBase b) => BC1 - (b == enumNBase.enbZero ? 1 : 0);
-
-        public CommandsUI(PackageProvider packageProvider)
+        public CommandsUI(PackageProvider packageProvider, IObjectExplorerInteraction objectExplorerInteraction, IWorkingDirProvider ssmsWorkingDirProvider)
         {
-            this.packageProvider = packageProvider;
+            _packageProvider            = packageProvider;
+            _objectExplorerInteraction  = objectExplorerInteraction;
+            _ssmsWorkingDirProvider     = ssmsWorkingDirProvider;
+
             SVCGlobal.statusText = "";
-          //F.MessageBox.Show($"Coucou ! ;-)", $"", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         }
 
         public void Register()
@@ -65,19 +73,21 @@ namespace SirSqlValetCommands
 
             isRegistered = true;
 
-            var handlers = new (EventHandler eh, int id)[]{ (Sir_Sql_Valet,     1001), 
-                                                            (switch_comment,    1002), 
-                                                            (exec_context,      1003), 
-                                                            (quote_unquote,     1004), 
-                                                            (single_line,       1005) };
+            var handlers = new (EventHandler eh, int id)[]  {   (Sir_Sql_Valet,                 1001), 
+                                                                (switch_comment,                1002), 
+                                                                (exec_context,                  1003), 
+                                                                (quote_unquote,                 1004),
+                                                                (single_line,                   1005),
+                                                                (connection_manager,            1006) 
+                                                            };
 
             foreach (var handler in handlers)
-                packageProvider.CommandService.AddCommand(new MenuCommand(handler.eh, new CommandID(MenuHelper.CommandSet, handler.id)));
+                _packageProvider.CommandService.AddCommand(new MenuCommand(handler.eh, new CommandID(MenuHelper.CommandSet, handler.id)));
         }
 
         private void GetQueryText()
         {
-            document = packageProvider.Dte2.ActiveDocument;
+            document = _packageProvider.Dte2.ActiveDocument;
             if (document == null)
                 return;
 
@@ -125,7 +135,7 @@ namespace SirSqlValetCommands
             textSelectionObj.CharRight(Count: BC(enumNBase.enbOne) - TC(enumNBase.enbOne), Extend: true);
         }
 
-        private void InitializeBefore_SpecificCommandExecution() => GetQueryText();
+        private void InitializeBeforeCommandExecution() => GetQueryText();
 
         private void ReplaceCurrentSelection(string newSelection)
         {
@@ -157,7 +167,7 @@ namespace SirSqlValetCommands
         {
             try
             {
-                InitializeBefore_SpecificCommandExecution();
+                InitializeBeforeCommandExecution();
                 SetQueryText_MergeNewLines(Command1001_SirSqlValet.Execute(this));
             }
             catch (Exception exception)
@@ -169,7 +179,7 @@ namespace SirSqlValetCommands
         {
             try
             {
-                InitializeBefore_SpecificCommandExecution();
+                InitializeBeforeCommandExecution();
                 SetQueryText_MergeNewLines(Command1002_SwitchComment.Execute(textDocumentLines, TL(enumNBase.enbZero)));
             }
             catch (Exception exception)
@@ -181,7 +191,7 @@ namespace SirSqlValetCommands
         {
             try
             {
-                InitializeBefore_SpecificCommandExecution();
+                InitializeBeforeCommandExecution();
                 SetQueryText_MergeNewLines(Command1003_RotateExecContext.Execute(this));
             }
             catch (Exception exception)
@@ -193,7 +203,7 @@ namespace SirSqlValetCommands
         {
             try
             {
-                InitializeBefore_SpecificCommandExecution();
+                InitializeBeforeCommandExecution();
                 ReplaceCurrentSelection(Command1004_QuoteUnquote.Execute(this));
             }
             catch (Exception exception)
@@ -205,12 +215,102 @@ namespace SirSqlValetCommands
         {
             try
             {
-                InitializeBefore_SpecificCommandExecution();
+                InitializeBeforeCommandExecution();
                 ReplaceCurrentSelection(Command1005_SingleLine.Execute(this));
             }
             catch (Exception exception)
             {
                 ShowMessage_Error(GetCurrentMethodName(), exception);
+            }
+        }
+        private async void connection_manager(object sender, EventArgs eventArg)
+        {
+            if (_objectExplorer is null)
+                _objectExplorer = (await _packageProvider.AsyncPackage.GetServiceAsync(typeof(IObjectExplorerService))) as IObjectExplorerService;
+
+            string selectionFileName = Path.Combine(_ssmsWorkingDirProvider.GetWorkingDir(), "lastSelectedKeywords.txt");
+
+            List<string> lastSelectedKeywords = new List<string>();
+            if (File.Exists(selectionFileName))
+                lastSelectedKeywords.AddRange(File.ReadAllText(selectionFileName).Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries));
+
+            try
+            {
+                // if no server definition, attempt to load from .json
+                if (!CMInfos.cminfos().Any())
+                { 
+                    CMInfos.Load(_ssmsWorkingDirProvider.GetWorkingDir());
+                    if (!CMInfos.cminfos().Any())
+                        return; // if STILL no server definition, get the fuck out
+                }
+
+                // aller chercher la selection du user
+                FKeywords fKeywords = new FKeywords(CMInfos.keyWords, lastSelectedKeywords);
+                List<string> selected = fKeywords.MyShowDialog().ToList();
+                fKeywords.Dispose();
+                fKeywords = null;
+
+                // pas de selection
+                if (!selected.Any())
+                    return; // ou on termine
+
+                // disconnect all connections
+                INodeInformation[] ini;
+                _objectExplorer.GetSelectedNodes(out int arraySize, out ini);
+                while (arraySize > 0)
+                {
+                    _objectExplorer.DisconnectSelectedServer();
+                    _objectExplorer.GetSelectedNodes(out arraySize, out ini);
+                }
+
+                var servers = CMInfos.cminfos() .Where  (_ => selected.All(s => _.KEYWORDS.Contains(s)))
+                                                .OrderBy(_ => _.NSTAR()).ThenBy(_ => _.FriendlyName());
+
+                foreach (var _ in servers)
+                    ConnectAndDoEvents(_);
+
+                PatientWait(nbr: 10, duration: 20);
+
+                foreach (var _ in servers)
+                {
+                    ObjectExplorerServer snode = ObjectExplorerHelper.GetServerHierarchyNode(_objectExplorer, _.SERVER);
+                    ObjectExplorerHelper.SelectNode(_objectExplorer, snode.Root);
+                    PatientWait(nbr: 10, duration: 10);
+
+                    if (_.STAR() || servers.Count() == 1)
+                    {
+                        SendKeys.SendWait("{RIGHT}");
+                        PatientWait(nbr: 10, duration: 10);
+                        SendKeys.SendWait("{RIGHT}");
+                        PatientWait(nbr: 10, duration: 10);
+                    }
+                    else
+                    {
+                        SendKeys.SendWait("{LEFT}");
+                        PatientWait(nbr: 10, duration: 10);
+                    }
+                }
+
+                File.WriteAllText(selectionFileName, selected.Join(' '));
+            }
+            catch (Exception exception)
+            {
+                ShowMessage_Error(GetCurrentMethodName(), exception);
+            }
+        }
+
+        private void ConnectAndDoEvents(CMInfo cmi)
+        {
+            _objectExplorerInteraction.ConnectServer(cmi.SERVER, cmi.FriendlyName());
+            PatientWait(nbr:10, duration:20);
+        }
+
+        private void PatientWait(int nbr, int duration)
+        {
+            foreach (var i in Enumerable.Range(1, nbr))
+            {
+                Application.DoEvents();
+                Task.Delay(duration).Wait();
             }
         }
     }

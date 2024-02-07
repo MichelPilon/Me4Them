@@ -16,7 +16,7 @@
       <Menu guid="guidCommand1PackageCmdSet" id="MyTopMenu" type="Menu">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_MM_TOOLSADDINS"/>
         <Strings>
-          <ButtonText>Sir Sql Valet</ButtonText>
+          <ButtonText>Sir Sql Valet 1.5.0.0</ButtonText>
         </Strings>
       </Menu>
     </Menus>    
@@ -51,6 +51,12 @@
           <ButtonText>single line</ButtonText>
         </Strings>
       </Button>
+      <Button guid="guidCommand1PackageCmdSet" id="ConnectionManagerCmd" priority="0x0100" type="Button">
+        <Parent guid="guidCommand1PackageCmdSet" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>Connection Manager</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
   </Commands>
 
@@ -67,6 +73,7 @@
       <IDSymbol name="RotateTransDevContextCmd"   value="1003"   />
       <IDSymbol name="StringyfyUnstringyfyCmd"    value="1004"   />
       <IDSymbol name="SqwishToSingleLineCmd"      value="1005"   />
+      <IDSymbol name="ConnectionManagerCmd"       value="1006"   />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

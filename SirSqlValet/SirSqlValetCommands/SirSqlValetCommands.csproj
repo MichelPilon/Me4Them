@@ -41,6 +41,9 @@
     <AssemblyOriginatorKeyFile>
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Azure.Core, Version=1.35.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
       <HintPath>..\packages\Azure.Core.1.35.0\lib\net472\Azure.Core.dll</HintPath>
@@ -49,7 +52,7 @@
       <HintPath>..\packages\Azure.Identity.1.10.3\lib\netstandard2.0\Azure.Identity.dll</HintPath>
     </Reference>
     <Reference Include="EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="EnvDTE80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -86,6 +89,10 @@
     </Reference>
     <Reference Include="Microsoft.IdentityModel.Tokens, Version=7.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.IdentityModel.Tokens.7.2.0\lib\net472\Microsoft.IdentityModel.Tokens.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.RegSvrEnum, Version=16.200.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\SirSqlValet\assemblies\Microsoft.SqlServer.RegSvrEnum.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.VisualStudio.CoreUtility.15.0.26228\lib\net45\Microsoft.VisualStudio.CoreUtility.dll</HintPath>
@@ -128,6 +135,10 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="SqlWorkbench.Interfaces, Version=16.200.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\SirSqlValet\assemblies\SqlWorkbench.Interfaces.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
@@ -220,12 +231,19 @@
     <Compile Include="Data\BD_Schema.cs" />
     <Compile Include="CommandsPlugin.cs" />
     <Compile Include="CommandsUI.cs" />
+    <Compile Include="Data\CMInfo.cs" />
     <Compile Include="Data\GCSS.cs" />
     <Compile Include="Forms\FJoin.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\FJoin.Designer.cs">
       <DependentUpon>FJoin.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\FKeywords.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FKeywords.Designer.cs">
+      <DependentUpon>FKeywords.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\FScript.cs">
       <SubType>Form</SubType>
@@ -265,6 +283,10 @@
   <ItemGroup>
     <EmbeddedResource Include="Forms\FJoin.resx">
       <DependentUpon>FJoin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FKeywords.resx">
+      <DependentUpon>FKeywords.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FScript.resx">
       <DependentUpon>FScript.cs</DependentUpon>

@@ -18,6 +18,7 @@ using Microsoft.SqlServer.Management.Smo.RegSvrEnum;
 using Microsoft.SqlServer.Management.UI.VSIntegration.ObjectExplorer;
 using System.Threading.Tasks;
 using SirSqlValetCommands.Forms;
+using System.IO;
 
 namespace SirSqlValetCommands
 {
@@ -55,8 +56,6 @@ namespace SirSqlValetCommands
         public  int TC(enumNBase b) => TC1 - (b == enumNBase.enbZero ? 1 : 0);
         public  int BL(enumNBase b) => BL1 - (b == enumNBase.enbZero ? 1 : 0);
         public  int BC(enumNBase b) => BC1 - (b == enumNBase.enbZero ? 1 : 0);
-
-        private List<string> lastSelectedKeywords = new List<string>();
 
         public CommandsUI(PackageProvider packageProvider, IObjectExplorerInteraction objectExplorerInteraction, IWorkingDirProvider ssmsWorkingDirProvider)
         {
@@ -229,6 +228,12 @@ namespace SirSqlValetCommands
             if (_objectExplorer is null)
                 _objectExplorer = (await _packageProvider.AsyncPackage.GetServiceAsync(typeof(IObjectExplorerService))) as IObjectExplorerService;
 
+            string selectionFileName = Path.Combine(_ssmsWorkingDirProvider.GetWorkingDir(), "lastSelectedKeywords.txt");
+
+            List<string> lastSelectedKeywords = new List<string>();
+            if (File.Exists(selectionFileName))
+                lastSelectedKeywords.AddRange(File.ReadAllText(selectionFileName).Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries));
+
             try
             {
                 // if no server definition, attempt to load from .json
@@ -240,8 +245,8 @@ namespace SirSqlValetCommands
                 }
 
                 // aller chercher la selection du user
-                FKeywords fKeywords = new FKeywords(CMInfos.keyWords);
-                List<string> selected = fKeywords.MyShowDialog(lastSelectedKeywords).ToList();
+                FKeywords fKeywords = new FKeywords(CMInfos.keyWords, lastSelectedKeywords);
+                List<string> selected = fKeywords.MyShowDialog().ToList();
                 fKeywords.Dispose();
                 fKeywords = null;
 
@@ -258,59 +263,35 @@ namespace SirSqlValetCommands
                     _objectExplorer.GetSelectedNodes(out arraySize, out ini);
                 }
 
-                lastSelectedKeywords.Clear();
-                lastSelectedKeywords.AddRange(selected);
-
                 var servers = CMInfos.cminfos() .Where  (_ => selected.All(s => _.KEYWORDS.Contains(s)))
                                                 .OrderBy(_ => _.NSTAR()).ThenBy(_ => _.FriendlyName());
 
                 foreach (var _ in servers)
                     ConnectAndDoEvents(_);
 
-                foreach (var i in Enumerable.Range(1, 10))
-                {
-                    Application.DoEvents();
-                    Task.Delay(20).Wait();
-                }
+                PatientWait(nbr: 10, duration: 20);
 
                 foreach (var _ in servers)
                 {
                     ObjectExplorerServer snode = ObjectExplorerHelper.GetServerHierarchyNode(_objectExplorer, _.SERVER);
                     ObjectExplorerHelper.SelectNode(_objectExplorer, snode.Root);
-                    foreach (var i in Enumerable.Range(1, 10))
-                    {
-                        Application.DoEvents();
-                        Task.Delay(10).Wait();
-                    }
+                    PatientWait(nbr: 10, duration: 10);
 
                     if (_.STAR() || servers.Count() == 1)
                     {
                         SendKeys.SendWait("{RIGHT}");
-                        Application.DoEvents();
-                        Task.Delay(100).Wait();
+                        PatientWait(nbr: 10, duration: 10);
                         SendKeys.SendWait("{RIGHT}");
-                        Application.DoEvents();
-                        Task.Delay(100).Wait();
+                        PatientWait(nbr: 10, duration: 10);
                     }
                     else
                     {
                         SendKeys.SendWait("{LEFT}");
-                        Application.DoEvents();
-                        Task.Delay(100).Wait();
+                        PatientWait(nbr: 10, duration: 10);
                     }
                 }
 
-                //IReadOnlyCollection<ObjectExplorerServer> x = ObjectExplorerHelper.GetServersConnection(_objectExplorer);
-                //foreach (ObjectExplorerServer xx in x)
-                //{ 
-                //    if (xx.Root.IsExpanded)
-                //    { 
-                //        xx.Root.Collapse();
-                //        Application.DoEvents();
-                //    }
-                //
-                //    Application.DoEvents();
-                //}
+                File.WriteAllText(selectionFileName, selected.Join(' '));
             }
             catch (Exception exception)
             {
@@ -321,22 +302,16 @@ namespace SirSqlValetCommands
         private void ConnectAndDoEvents(CMInfo cmi)
         {
             _objectExplorerInteraction.ConnectServer(cmi.SERVER, cmi.FriendlyName());
-            foreach (var i in Enumerable.Range(1, 10))
-            {
-                Application.DoEvents();
-                Task.Delay(20).Wait();
-            }
+            PatientWait(nbr:10, duration:20);
         }
 
-        //private void SendKeysWaitDoEvents(string text) => SendKeysWaitDoEvents(new[] { text });
-        //private void SendKeysWaitDoEvents(IEnumerable<string> keys)
-        //{
-        //    foreach (var key in keys) 
-        //    {
-        //        SendKeys.SendWait(key);
-        //        Application.DoEvents();
-        //        System.Threading.Thread.Sleep(200);
-        //    }
-        //}
+        private void PatientWait(int nbr, int duration)
+        {
+            foreach (var i in Enumerable.Range(1, nbr))
+            {
+                Application.DoEvents();
+                Task.Delay(duration).Wait();
+            }
+        }
     }
 }

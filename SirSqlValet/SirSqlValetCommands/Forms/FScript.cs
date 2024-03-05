@@ -115,7 +115,7 @@ namespace SirSqlValetCommands
             if (string.IsNullOrWhiteSpace((lWarning.Text = SirDBSidekickLogic.ProcessScriptAndSelectedLine())))
             {
                 FJoin f = new FJoin();
-                f.MyShowDialog();
+                f.FJoin_MyShowDialog();
                 f.Dispose();
                 f = null;
                 AdjustUIContent();

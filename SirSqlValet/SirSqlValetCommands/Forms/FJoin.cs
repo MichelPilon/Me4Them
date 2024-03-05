@@ -42,7 +42,7 @@ namespace SirSqlValetCommands
         int nvh2 = 30;
         int nvh3 = 35;
 
-        public FJoin()
+        public          FJoin()
         {
             InitializeComponent();
 
@@ -127,61 +127,6 @@ namespace SirSqlValetCommands
                 }
 
                 return PossibleAcronyme;
-            };
-
-            // --------------------------------------------------------------------------------------------------
-            // Code de bonification
-            // --------------------------------------------------------------------------------------------------
-            Func<bool, string, string, string, string, string, string, int, (string GSuperieur, string GInferieur)> BatirGroupeSuperieurEtBonification = (fBase, fTable, fAcronyme, fBaseTable, fTexteRequete, fGroupeSuperieur, fGroupeInferieur, fNbrLigneRequete) =>
-            {
-                string Insertion = string.Empty;
-
-                List<COLUMN> fColsTypes = BD_Schema.columns.Where(c => { return (c.TABLE_NAME.ToUpper() == fTable.ToUpper()) && (c.COLUMN_NAME.ToUpper().StartsWith("aPour".ToUpper())); }).ToList();
-                if (fColsTypes.Count >= 1)
-                {
-                    foreach (COLUMN ColType in fColsTypes)
-                    {
-                        string ViewTypeName = ColType.COLUMN_NAME.Substring("aPour".Length);
-                        bool ViewsOnly = !(ColType.COLUMN_NAME.ToUpper().StartsWith("aPourType")) && !(ViewTypeName.ToUpper() == "TypeDocument".ToUpper() && !(ViewTypeName.ToUpper() == "Langue".ToUpper()));
-
-                        VIEW v = BD_Schema.views.FirstOrDefault(view => { return view.VIEW_NAME.ToUpper() == ViewTypeName.ToUpper(); });
-                        if (!(v is null))
-                        {
-                            string A_VIEW_NAME = acronyme(v.VIEW_SCHEMA, v.VIEW_NAME, fTexteRequete + fGroupeInferieur, fNbrLigneRequete);
-                            int size = BD_Schema.vcolumns.Single(vc => { return vc.VIEW_SCHEMA.ToUpper() == v.VIEW_SCHEMA.ToUpper() && vc.VIEW_NAME.ToUpper() == v.VIEW_NAME.ToUpper() && vc.COLUMN_NAME.ToUpper() == "DESCRIPTIONFRANCAIS"; }).COLUMN_MAX_WIDTH;
-                            Insertion += string.Format(", CONVERT(NVARCHAR({2}), {0}.Description) AS [{1}]", A_VIEW_NAME, ViewTypeName, size);
-                            if (fBase)
-                                fGroupeInferieur = string.Format("{0} JOIN  {1} {2} ON {2}.{3} = {4}.{5}", "LEFT ", v.VIEW_SCHEMA + "." + v.VIEW_NAME, A_VIEW_NAME, "UniqueId", fAcronyme, ColType.COLUMN_NAME) + Environment.NewLine + fGroupeInferieur;
-                            else
-                                fGroupeInferieur += Environment.NewLine + string.Format("{0} JOIN  {1} {2} ON {2}.{3} = {4}.{5}", "LEFT ", v.VIEW_SCHEMA + "." + v.VIEW_NAME, A_VIEW_NAME, "UniqueId", fAcronyme, ColType.COLUMN_NAME);
-                        }
-                        else if (!ViewsOnly)
-                        {
-                            TABLE t = BD_Schema.tables.FirstOrDefault(table => { return table.TABLE_NAME.ToUpper() == ViewTypeName.ToUpper(); });
-
-                            COLUMN c = BD_Schema.columns.FirstOrDefault(colonne => { return colonne.TABLE_NAME.ToUpper() == ViewTypeName.ToUpper() && colonne.COLUMN_NAME.ToUpper() == "DescriptionFrancais".ToUpper(); });
-                            if (c is null)
-                                c = BD_Schema.columns.FirstOrDefault(colonne => { return colonne.TABLE_NAME.ToUpper() == ViewTypeName.ToUpper() && colonne.COLUMN_NAME.ToUpper() == "Description".ToUpper(); });
-
-                            if (c is null)
-                                c = BD_Schema.columns.FirstOrDefault(colonne => { return colonne.TABLE_NAME.ToUpper() == ViewTypeName.ToUpper() && (colonne.COLUMN_TYPE.ToUpper().StartsWith("VARCHAR") || colonne.COLUMN_TYPE.ToUpper().StartsWith("NVARCHAR") || colonne.COLUMN_TYPE.ToUpper().StartsWith("CHAR") || colonne.COLUMN_TYPE.ToUpper().StartsWith("NCHAR")); });
-
-                            if (!(t is null) && !(c is null))
-                            {
-                                string A_TABLE_NAME = acronyme("", t.TABLE_NAME, fTexteRequete + fGroupeInferieur, fNbrLigneRequete);
-                                Insertion += string.Format(", CONVERT(NVARCHAR, {0}.{2}) AS [{1}]", A_TABLE_NAME, ViewTypeName, c.COLUMN_NAME);
-                                if (fBase)
-                                    fGroupeInferieur = string.Format("{0} JOIN  {1} {2} ON {2}.{3} = {4}.{5}", "LEFT ", t.TABLE_NAME, A_TABLE_NAME, "UniqueId", fAcronyme, ColType.COLUMN_NAME) + Environment.NewLine + fGroupeInferieur;
-                                else
-                                    fGroupeInferieur += Environment.NewLine + string.Format("{0} JOIN  {1} {2} ON {2}.{3} = {4}.{5}", "LEFT ", t.TABLE_NAME, A_TABLE_NAME, "UniqueId", fAcronyme, ColType.COLUMN_NAME);
-                            }
-                        }
-                    }
-                }
-
-                fGroupeSuperieur = string.Format("{4}'----- {0}_{1} -----' AS [----- {0}_{1} -----]{3}, {2}", fTable, fAcronyme, ExpandTablePointEtoile(fTable, fAcronyme), Insertion, (fBase ? "," : ",")) + (fBase ? Environment.NewLine + fGroupeSuperieur : "");
-
-                return (fGroupeSuperieur, fGroupeInferieur);
             };
 
             // -------------------------------------------------------------------------------
@@ -423,15 +368,14 @@ namespace SirSqlValetCommands
             throughMyShowDialog = false;
         }
 
-        public void MyShowDialog()
+        public void     FJoin_MyShowDialog()
         {
             throughMyShowDialog = true;
             this.ShowDialog();
             throughMyShowDialog = false;
         }
 
-
-        private void FJoin_Shown(object sender, EventArgs e)
+        private void    FJoin_Shown(object sender, EventArgs e)
         {
             if (!throughMyShowDialog)
             {
@@ -454,17 +398,40 @@ namespace SirSqlValetCommands
             }
         }
 
-        private void bCancel_Click(object sender, EventArgs e)
+        private void    bJoin_Click(object sender = null, EventArgs e = null)
+        {
+            (int, int) infoUserSelection;
+            try
+            {
+                infoUserSelection = sel123.Select((_, i) => (_, i)).First(_ => _.Item1 != -1);
+            }
+            catch (Exception)
+            {
+                infoUserSelection = (0, -1);
+            }
+
+            if (infoUserSelection.Item2 == -1)
+                return;
+
+            string userSelection = list123[infoUserSelection.Item2][infoUserSelection.Item1];
+            string joinType = new[] { "INNER", "LEFT", "LEFT" }.ToArray()[infoUserSelection.Item2];
+
+            SirDBSidekickLogic.Join(userSelection, joinType);
+            SirDBSidekickLogic.TraitementAvecAutreTable();
+            PutOnStack();
+            this.Close();
+        }
+        private void    bCancel_Click(object sender, EventArgs e)
         {
             DataInitialize();
             this.Close();
         }
 
-        private void FJoin_Resize(object sender, EventArgs e)
+        private void    FJoin_Resize(object sender, EventArgs e)
         {
             FJoin_Resize();
         }
-        private void FJoin_Resize()
+        private void    FJoin_Resize()
         {
             if (splMain.Tag != null && int.TryParse(splMain.Tag.ToString(), out int newValue))
                 splMain.SplitterDistance = newValue;
@@ -472,7 +439,7 @@ namespace SirSqlValetCommands
             AdjustMajorSplitters(25, 50, nvh1, nvh2);
         }
 
-        private void AdjustMajorSplitters(int pctLeft, int pctMiddle, int pctMiddleTop, int pctMiddleMiddle)
+        private void    AdjustMajorSplitters(int pctLeft, int pctMiddle, int pctMiddleTop, int pctMiddleMiddle)
         {
             int w = splMain.Width - 2;
             splLeft.SplitterDistance = w * pctLeft / 100;
@@ -483,7 +450,7 @@ namespace SirSqlValetCommands
             splMiddleMiddle.SplitterDistance = (h * pctMiddleMiddle / 100);
         }
 
-        private void List123Click(List<string> list, int listIndex, int index)
+        private void    List123Click(List<string> list, int listIndex, int index)
         {
             StringSplitOptions ree = StringSplitOptions.RemoveEmptyEntries;
 
@@ -558,23 +525,25 @@ namespace SirSqlValetCommands
 
             sel123.ToList().Select((_, i) => (_, i)).Where(_ => _.i != listIndex && listbox123[_.i].SelectedIndex != -1).ToList().ForEach(_ => listbox123[_.i].SelectedIndex = -1);
         }
+        private void    listBox123_DoubleClick(object sender, EventArgs e)
+        {
+            bJoin_Click();
+        }
 
-        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        private void    listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             List123Click(list1, 0, listBox1.SelectedIndex);
         }
-
-        private void listBox2_SelectedIndexChanged(object sender, EventArgs e)
+        private void    listBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
             List123Click(list2, 1, listBox2.SelectedIndex);
         }
-
-        private void listBox3_SelectedIndexChanged(object sender, EventArgs e)
+        private void    listBox3_SelectedIndexChanged(object sender, EventArgs e)
         {
             List123Click(list3, 2, listBox3.SelectedIndex);
         }
 
-        private void listBox1_KeyDown(object sender, KeyEventArgs e)
+        private void    listBox1_KeyDown(object sender, KeyEventArgs e)
         {
             if (new[] { Keys.Up, Keys.Left }.Contains(e.KeyCode) && listBox1.SelectedIndex == 0)
             {
@@ -607,8 +576,7 @@ namespace SirSqlValetCommands
                 }
             }
         }
-
-        private void listBox2_KeyDown(object sender, KeyEventArgs e)
+        private void    listBox2_KeyDown(object sender, KeyEventArgs e)
         {
             if (new[] { Keys.Up, Keys.Left }.Contains(e.KeyCode) && listBox2.SelectedIndex == 0)
             {
@@ -641,8 +609,7 @@ namespace SirSqlValetCommands
                 }
             }
         }
-
-        private void listBox3_KeyDown(object sender, KeyEventArgs e)
+        private void    listBox3_KeyDown(object sender, KeyEventArgs e)
         {
             if (new[] { Keys.Up, Keys.Left }.Contains(e.KeyCode) && listBox3.SelectedIndex == 0)
             {
@@ -674,35 +641,6 @@ namespace SirSqlValetCommands
                     listBox2.Focus();
                 }
             }
-        }
-
-        private void bJoin_Click(object sender = null, EventArgs e = null)
-        {
-            (int, int) infoUserSelection;
-            try
-            {
-                infoUserSelection = sel123.Select((_, i) => (_, i)).First(_ => _.Item1 != -1);
-            }
-            catch (Exception)
-            {
-                infoUserSelection = (0, -1);
-            }
-
-            if (infoUserSelection.Item2 == -1)
-                return;
-
-            string userSelection = list123[infoUserSelection.Item2][infoUserSelection.Item1];
-            string joinType = new[] { "INNER", "LEFT", "LEFT" }.ToArray()[infoUserSelection.Item2];
-
-            SirDBSidekickLogic.Join(userSelection, joinType);
-            SirDBSidekickLogic.TraitementAvecAutreTable();
-            PutOnStack();
-            this.Close();
-        }
-
-        private void listBox123_DoubleClick(object sender, EventArgs e)
-        {
-            bJoin_Click();
         }
     }
 }
